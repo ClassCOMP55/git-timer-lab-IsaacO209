@@ -20,6 +20,8 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 	private Timer movement;
 	private RandomGenerator rgen;
 	private int numTimes = 0;
+	private int numEnemiesDestroyed = 0;
+	GLabel enemiesDestroyed;
 	
 	public static final int SIZE = 25;
 	public static final int SPEED = 2;
@@ -33,9 +35,10 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 		rgen = RandomGenerator.getInstance();
 		balls = new ArrayList<GOval>();
 		enemies = new ArrayList<GRect>();
-		
-		text = new GLabel(""+enemies.size(), 0, WINDOW_HEIGHT);
+		enemiesDestroyed = new GLabel("Enemies destroyed: "+numEnemiesDestroyed,0,WINDOW_HEIGHT-1);
+		text = new GLabel("Enemies left: "+enemies.size(), 0, WINDOW_HEIGHT-enemiesDestroyed.getHeight());
 		add(text);
+		add(enemiesDestroyed);
 		
 		movement = new Timer(MS, this);
 		movement.start();
@@ -44,9 +47,20 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 	
 	public void actionPerformed(ActionEvent e) {
 		moveAllBallsOnce();
+		enemiesDestroyed.setLabel("Enemies destroyed: "+numEnemiesDestroyed);
 		if(numTimes % 40 == 0) addAnEnemy();
 		numTimes++;
 		moveAllEnemiesOnce();
+		if (enemies.size()==MAX_ENEMIES) {
+			movement.stop();
+			removeAll();
+			GLabel lose = new GLabel("You lose!");
+			GLabel score = new GLabel("You survived for: "+numTimes);
+			lose.setLocation(WINDOW_WIDTH/2-(lose.getWidth()/2), WINDOW_HEIGHT/2);
+			score.setLocation(WINDOW_WIDTH/2-(score.getWidth()/2), WINDOW_HEIGHT/2+lose.getHeight());
+			add(lose);
+			add(score);
+		}
 	}
 	
 	public void moveAllEnemiesOnce() {
@@ -80,7 +94,7 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 	private void addAnEnemy() {
 		GRect e = makeEnemy(rgen.nextInt(0, WINDOW_HEIGHT-SIZE/2));
 		enemies.add(e);
-		text.setLabel("" + enemies.size());
+		text.setLabel("Enemies left: " + enemies.size());
 		add(e);
 	}
 	
@@ -98,6 +112,7 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 				GObject target =getElementAt(ball.getX()+ball.getWidth()+1,ball.getY()+ball.getHeight()/2);
 				remove(target);
 				enemies.remove(target);
+				numEnemiesDestroyed++;
 			}
 			
 		}
